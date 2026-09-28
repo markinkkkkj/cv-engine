@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+build/
+*.egg-info/
+
+# Ferramentas
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Editor e SO
+.vscode/
+.idea/
+.DS_Store
+.obsidian/
+
+# NÃO ignore data/ nem applications/ aqui: o repositório privado de dados herda este arquivo
+# e versiona essas pastas. A proteção contra vazamento no motor é o CI/pre-commit.

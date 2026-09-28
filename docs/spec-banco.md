@@ -18,7 +18,8 @@ Dentro da fase 1a:
 Fora da fase 1a (ficam para as próximas fases):
 
 - `tailored.yaml` e `gaps.md` (seleção por vaga): fase 1b/2;
-- `render.json` e `contract.schema.json` (entrada do template): fase 1b;
+- `render.json` (entrada do template): o formato já está em `templates/contract.schema.json`; quem o
+  gera é o resolvedor, na fase 1b;
 - rótulos fixos (`i18n/*.yaml`): fase 1b.
 
 ## 2. Layout do diretório de dados
@@ -161,6 +162,8 @@ URLs são gravadas **como aparecem impressas**, sem esquema: `github.com/usuaria
   `javascript:...`.
 - Regra sugerida: `^(https://)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}(/\S*)?$`.
 - O resolvedor (fase 1b) é quem acrescenta `https://` no link clicável.
+- No YAML, link com `?`, `#` ou `:` depois do domínio vai **entre aspas**
+  (`["youtube.com/watch?v=abc"]`). Sem aspas, dentro de lista em linha (`[...]`), o parser falha.
 
 ### 3.8. Status
 
@@ -341,7 +344,7 @@ headline:
   en: Software Developer
 tracks: [backend, data]
 headline_by_track:
-  data: { pt: Engenheira de Dados Júnior, en: Junior Data Engineer }
+  data: { pt: Desenvolvedora de Dados, en: Data Developer }
 summary:
   backend:
     junior:
@@ -349,8 +352,8 @@ summary:
       en: "Backend developer with 2 years of experience building Python APIs on PostgreSQL."
 location: { city: Recife, region: PE, country: BR }
 contacts:
-  email: beatriz@exemplo.dev
-  github: github.com/beatriz-exemplo
+  email: beatriz@example.com
+  github: github.com/beatriz-lima-example
 languages:
   - name: { pt: Inglês, en: English }
     level: { pt: Avançado (B2), en: Upper-intermediate (B2) }

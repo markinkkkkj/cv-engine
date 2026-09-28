@@ -1,0 +1,31 @@
+# Skills da persona. evidence = ids de itens do banco; evidence_links = comprovação externa.
+skills:
+  - name: Python
+    aliases: [Python 3]
+    category: language
+    evidence: [acme-pagamentos, feira-livre, painel-de-chuvas, planilhas-estoque]
+    depth: solid
+    status: reviewed
+  - name: SQL
+    aliases: []
+    category: language
+    evidence: [acme-pagamentos, sql-avancado]
+    depth: working
+    status: reviewed
+  - name: PostgreSQL
+    aliases: [Postgres]
+    category: database
+    evidence: [acme-pagamentos, feira-livre, rota-acessivel]
+    depth: working
+    status: reviewed
+  - { name: FastAPI, aliases: [REST API], category: framework, evidence: [feira-livre, rota-acessivel], depth: working, status: reviewed }
+  - { name: pytest, aliases: [testes unitários, unit tests], category: tool, evidence: [acme-pagamentos], depth: working, status: reviewed }
+  - { name: DuckDB, aliases: [], category: database, evidence: [painel-de-chuvas], depth: basic, status: reviewed }
+  - { name: pandas, aliases: [Excel, planilhas], category: library, evidence: [painel-de-chuvas, planilhas-estoque], depth: working, status: reviewed }
+  - { name: Docker, aliases: [Docker Compose, containers], category: tool, evidence: [feira-livre], depth: basic, status: reviewed }
+  - { name: Git, aliases: [GitHub], category: tool, evidence: [acme-pagamentos, feira-livre, painel-de-chuvas], depth: solid, status: reviewed }
+  - { name: GitLab CI, aliases: [CI/CD, CI], category: tool, evidence: [acme-pagamentos], hands_on: false, status: draft }  # só usava o pipeline pronto
+  - { name: HTML, aliases: [HTML5], category: language, evidence: [padaria-bom-dia], status: reviewed }
+  - { name: CSS, aliases: [CSS3], category: language, evidence: [padaria-bom-dia], status: reviewed }
+  - { name: C, aliases: [], category: language, evidence: [monitoria-algoritmos], evidence_links: ["youtube.com/watch?v=example-c"], depth: working, status: reviewed }
+  - { name: Kotlin, aliases: [], category: language, evidence: [], status: unverified }  # estudou sozinha, sem projeto

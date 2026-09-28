@@ -8,7 +8,12 @@ banco (MD+YAML) ──► tailored.yaml ──► render.json ──► Typst �
                     seleção por vaga   resolvido        template
 ```
 
-Estado: fase 1a (formato do banco e validação). Formato do banco: [docs/spec-banco.md](docs/spec-banco.md).
+Estado: fase 1a (formato do banco e validação).
+
+- Formato do banco: [docs/spec-banco.md](docs/spec-banco.md).
+- Banco de exemplo (pessoa fictícia): [examples/persona/](examples/persona/).
+- Contrato do `render.json`, entrada de todos os temas: [templates/contract.schema.json](templates/contract.schema.json).
+  Exemplo: [tests/fixtures/contract/persona-backend-pt.json](tests/fixtures/contract/persona-backend-pt.json).
 
 ## Desenvolvimento
 

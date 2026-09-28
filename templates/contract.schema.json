@@ -1,0 +1,339 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cv-engine:contract:1",
+  "title": "render.json",
+  "description": "Entrada de todos os temas. Gerado pelo resolvedor a partir do banco e da seleção por vaga: um idioma só, datas e rótulos já formatados. O template só lê este arquivo e não tem lógica de idioma. Regras: (1) todo campo está sempre presente, e valor ausente é null; (2) seção vazia não aparece; (3) textos são uma linha, sem espaço nas pontas. A densidade (normal ou compact) não faz parte do contrato: o build passa por --input.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "lang", "meta", "header", "summary", "sections"],
+  "properties": {
+    "contract_version": {
+      "description": "Versão do contrato. Muda só quando o formato quebra compatibilidade.",
+      "const": 1
+    },
+    "lang": {
+      "description": "Idioma do currículo. O template usa só para a hifenização.",
+      "enum": ["pt", "en"]
+    },
+    "meta": {
+      "description": "Metadados do PDF.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "author", "keywords"],
+      "properties": {
+        "title": { "$ref": "#/$defs/line", "maxLength": 120 },
+        "author": { "$ref": "#/$defs/line", "maxLength": 80 },
+        "keywords": {
+          "type": "array",
+          "maxItems": 30,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/line", "maxLength": 40 }
+        }
+      }
+    },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "headline", "location", "contacts"],
+      "properties": {
+        "name": { "$ref": "#/$defs/line", "maxLength": 80 },
+        "headline": { "$ref": "#/$defs/line", "maxLength": 80 },
+        "location": { "$ref": "#/$defs/optionalLine", "maxLength": 80 },
+        "contacts": {
+          "description": "Na ordem em que aparecem.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/contact" }
+        }
+      }
+    },
+    "summary": {
+      "description": "Resumo profissional. null = sem resumo.",
+      "$ref": "#/$defs/optionalLine",
+      "maxLength": 400
+    },
+    "sections": {
+      "description": "Na ordem em que aparecem. Cada kind aparece no máximo uma vez (conferido pelo resolvedor; JSON Schema não expressa isso).",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/experienceSection" },
+          { "$ref": "#/$defs/projectsSection" },
+          { "$ref": "#/$defs/educationSection" },
+          { "$ref": "#/$defs/skillsSection" },
+          { "$ref": "#/$defs/languagesSection" },
+          { "$ref": "#/$defs/coursesSection" },
+          { "$ref": "#/$defs/activitiesSection" }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "line": {
+      "description": "Texto de uma linha, não vazio, sem espaço no início nem no fim.",
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\S(.*\\S)?$"
+    },
+    "optionalLine": {
+      "anyOf": [{ "$ref": "#/$defs/line" }, { "type": "null" }]
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "url": {
+      "description": "Destino clicável. O texto impresso fica em 'text'.",
+      "type": "string",
+      "pattern": "^(https://\\S+|mailto:[^\\s@]+@[^\\s@]+|tel:\\+?[0-9]+)$"
+    },
+    "optionalUrl": {
+      "anyOf": [{ "$ref": "#/$defs/url" }, { "type": "null" }]
+    },
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text", "url"],
+      "properties": {
+        "kind": { "enum": ["email", "phone", "linkedin", "github", "website"] },
+        "text": { "$ref": "#/$defs/line", "maxLength": 80 },
+        "url": { "$ref": "#/$defs/url" }
+      }
+    },
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text", "url"],
+      "properties": {
+        "kind": { "enum": ["repo", "demo", "download", "post", "docs", "video", "website"] },
+        "text": { "$ref": "#/$defs/line", "maxLength": 100 },
+        "url": { "$ref": "#/$defs/url" }
+      }
+    },
+    "period": {
+      "description": "Datas já formatadas no idioma. end null = evento pontual; em andamento vem como texto ('Atual', 'Present').",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "$ref": "#/$defs/line", "maxLength": 20 },
+        "end": { "$ref": "#/$defs/optionalLine", "maxLength": 30 }
+      }
+    },
+    "bullet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": {
+          "description": "Id do bullet no banco. Não é impresso; serve para o build apontar o que cortar.",
+          "$ref": "#/$defs/slug"
+        },
+        "text": { "$ref": "#/$defs/line", "maxLength": 200 }
+      }
+    },
+    "bullets": {
+      "type": "array",
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/bullet" }
+    },
+    "sectionTitle": { "$ref": "#/$defs/line", "maxLength": 40 },
+
+    "experienceSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "title", "items"],
+      "properties": {
+        "kind": { "const": "experience" },
+        "title": { "$ref": "#/$defs/sectionTitle" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "title", "org", "location", "period", "context", "bullets"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "title": { "$ref": "#/$defs/line", "maxLength": 80 },
+              "org": { "$ref": "#/$defs/line", "maxLength": 100 },
+              "location": { "$ref": "#/$defs/optionalLine", "maxLength": 80 },
+              "period": { "$ref": "#/$defs/period" },
+              "context": { "$ref": "#/$defs/optionalLine", "maxLength": 120 },
+              "bullets": { "$ref": "#/$defs/bullets" }
+            }
+          }
+        }
+      }
+    },
+    "projectsSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "title", "items"],
+      "properties": {
+        "kind": { "const": "projects" },
+        "title": { "$ref": "#/$defs/sectionTitle" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "tagline", "context", "role", "period", "links", "bullets"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "name": { "$ref": "#/$defs/line", "maxLength": 60 },
+              "tagline": { "$ref": "#/$defs/optionalLine", "maxLength": 120 },
+              "context": { "$ref": "#/$defs/optionalLine", "maxLength": 120 },
+              "role": { "$ref": "#/$defs/optionalLine", "maxLength": 80 },
+              "period": { "$ref": "#/$defs/period" },
+              "links": {
+                "type": "array",
+                "maxItems": 3,
+                "items": { "$ref": "#/$defs/link" }
+              },
+              "bullets": { "$ref": "#/$defs/bullets" }
+            }
+          }
+        }
+      }
+    },
+    "educationSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "title", "items"],
+      "properties": {
+        "kind": { "const": "education" },
+        "title": { "$ref": "#/$defs/sectionTitle" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "degree", "institution", "location", "period"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "degree": { "$ref": "#/$defs/line", "maxLength": 100 },
+              "institution": { "$ref": "#/$defs/line", "maxLength": 100 },
+              "location": { "$ref": "#/$defs/optionalLine", "maxLength": 80 },
+              "period": { "$ref": "#/$defs/period" }
+            }
+          }
+        }
+      }
+    },
+    "skillsSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "title", "items"],
+      "properties": {
+        "kind": { "const": "skills" },
+        "title": { "$ref": "#/$defs/sectionTitle" },
+        "items": {
+          "description": "Grupos de skills (ex.: 'Linguagens: Python, SQL').",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "skills"],
+            "properties": {
+              "label": { "$ref": "#/$defs/line", "maxLength": 40 },
+              "skills": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 15,
+                "uniqueItems": true,
+                "items": { "$ref": "#/$defs/line", "maxLength": 40 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "languagesSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "title", "items"],
+      "properties": {
+        "kind": { "const": "languages" },
+        "title": { "$ref": "#/$defs/sectionTitle" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "level", "url"],
+            "properties": {
+              "name": { "$ref": "#/$defs/line", "maxLength": 40 },
+              "level": { "$ref": "#/$defs/line", "maxLength": 60 },
+              "url": { "$ref": "#/$defs/optionalUrl" }
+            }
+          }
+        }
+      }
+    },
+    "coursesSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "title", "items"],
+      "properties": {
+        "kind": { "const": "courses" },
+        "title": { "$ref": "#/$defs/sectionTitle" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "title", "provider", "date", "hours", "url"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "title": { "$ref": "#/$defs/line", "maxLength": 100 },
+              "provider": { "$ref": "#/$defs/line", "maxLength": 80 },
+              "date": { "$ref": "#/$defs/optionalLine", "maxLength": 20 },
+              "hours": { "$ref": "#/$defs/optionalLine", "maxLength": 20 },
+              "url": { "$ref": "#/$defs/optionalUrl" }
+            }
+          }
+        }
+      }
+    },
+    "activitiesSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "title", "items"],
+      "properties": {
+        "kind": { "const": "activities" },
+        "title": { "$ref": "#/$defs/sectionTitle" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "period", "bullets"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "name": { "$ref": "#/$defs/line", "maxLength": 80 },
+              "period": { "$ref": "#/$defs/period" },
+              "bullets": { "$ref": "#/$defs/bullets" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

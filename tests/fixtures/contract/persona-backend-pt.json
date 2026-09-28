@@ -1,0 +1,108 @@
+{
+  "contract_version": 1,
+  "lang": "pt",
+  "meta": {
+    "title": "Beatriz Lima — Currículo",
+    "author": "Beatriz Nogueira Lima",
+    "keywords": ["Python", "PostgreSQL", "FastAPI", "Backend"]
+  },
+  "header": {
+    "name": "Beatriz Lima",
+    "headline": "Desenvolvedora Backend",
+    "location": "Recife, PE",
+    "contacts": [
+      { "kind": "email", "text": "beatriz@example.com", "url": "mailto:beatriz@example.com" },
+      { "kind": "phone", "text": "+55 (81) 90000-0000", "url": "tel:+5581900000000" },
+      { "kind": "linkedin", "text": "linkedin.com/in/beatriz-lima-example", "url": "https://linkedin.com/in/beatriz-lima-example" },
+      { "kind": "github", "text": "github.com/beatriz-lima-example", "url": "https://github.com/beatriz-lima-example" }
+    ]
+  },
+  "summary": "Desenvolvedora backend com 1 ano de estágio em fintech: automações em Python e consultas PostgreSQL no fechamento de pagamentos. Mantenho uma API REST em FastAPI usada por uma cooperativa de feirantes. Inglês B2.",
+  "sections": [
+    {
+      "kind": "experience",
+      "title": "Experiência",
+      "items": [
+        {
+          "id": "acme-pagamentos",
+          "title": "Estagiária de Desenvolvimento",
+          "org": "Acme Pagamentos",
+          "location": "Recife, PE · Híbrido",
+          "period": { "start": "ago 2024", "end": "jul 2025" },
+          "context": "Time de conciliação financeira de uma fintech de pagamentos",
+          "bullets": [
+            { "id": "acme-conciliacao", "text": "Automatizei em Python a conciliação diária de pagamentos, eliminando 4 h de trabalho manual por semana do time financeiro." },
+            { "id": "acme-consultas", "text": "Reescrevi consultas PostgreSQL do relatório de repasses com índices adequados, reduzindo o tempo de geração de 40 s para 3 s." },
+            { "id": "acme-testes", "text": "Escrevi testes com pytest para o módulo de tarifas, que passou a rodar no pipeline de CI a cada merge request." }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "projects",
+      "title": "Projetos",
+      "items": [
+        {
+          "id": "feira-livre",
+          "name": "Feira Livre",
+          "tagline": "API de pedidos para uma cooperativa de feirantes",
+          "context": null,
+          "role": null,
+          "period": { "start": "set 2025", "end": "Atual" },
+          "links": [
+            { "kind": "repo", "text": "github.com/beatriz-lima-example/feira-livre", "url": "https://github.com/beatriz-lima-example/feira-livre" },
+            { "kind": "demo", "text": "feira.example.com", "url": "https://feira.example.com" }
+          ],
+          "bullets": [
+            { "id": "feira-api", "text": "Desenvolvi uma API REST em FastAPI e PostgreSQL que recebe os pedidos semanais de 12 feirantes de uma cooperativa." },
+            { "id": "feira-deploy", "text": "Publiquei a API com Docker Compose numa VPS, com backup diário do banco e restauração testada." }
+          ]
+        },
+        {
+          "id": "rota-acessivel",
+          "name": "Rota Acessível",
+          "tagline": "App que sugere rotas de ônibus com veículos adaptados",
+          "context": "Trabalho de conclusão de curso, equipe de 3",
+          "role": null,
+          "period": { "start": "fev 2026", "end": "Atual" },
+          "links": [
+            { "kind": "repo", "text": "github.com/beatriz-lima-example/rota-acessivel", "url": "https://github.com/beatriz-lima-example/rota-acessivel" }
+          ],
+          "bullets": [
+            { "id": "rota-gtfs", "text": "Importei os dados GTFS do transporte público da cidade para PostgreSQL e expus a busca de rotas acessíveis numa API FastAPI." }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "education",
+      "title": "Formação",
+      "items": [
+        {
+          "id": "universidade-litoral",
+          "degree": "Bacharelado em Ciência da Computação",
+          "institution": "Universidade Estadual do Litoral",
+          "location": null,
+          "period": { "start": "fev 2023", "end": "dez 2026 (previsão)" }
+        }
+      ]
+    },
+    {
+      "kind": "skills",
+      "title": "Habilidades",
+      "items": [
+        { "label": "Linguagens", "skills": ["Python", "SQL"] },
+        { "label": "Frameworks e bancos", "skills": ["FastAPI", "PostgreSQL"] },
+        { "label": "Ferramentas", "skills": ["Git", "Docker", "pytest"] }
+      ]
+    },
+    {
+      "kind": "languages",
+      "title": "Idiomas",
+      "items": [
+        { "name": "Português", "level": "Nativo", "url": null },
+        { "name": "Inglês", "level": "Avançado (B2)", "url": "https://cert.example.org/b2-4821" }
+      ]
+    }
+  ]
+}

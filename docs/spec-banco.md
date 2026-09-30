@@ -7,6 +7,103 @@ O banco é a **fonte da verdade**: tudo o que aparece num currículo sai daqui. 
 para que um erro de digitação, uma data trocada ou um bullet sem revisão falhe **antes** de chegar
 ao PDF, com uma mensagem que diga onde está o problema.
 
+## 0. Visão geral: o que o código faz
+
+Leia esta seção primeiro. As seções seguintes são a referência dos detalhes; esta é o mapa.
+
+### 0.1. O programa, de fora
+
+No fim da fase 1a, um comando recebe a pasta do banco e responde "ok" ou lista os problemas:
+
+```
+$ uv run python -m cv_engine.validation examples/persona
+ERROR    experience/acme-pagamentos.md  bullets[0].text.en  required in a reviewed bullet
+```
+
+### 0.2. As quatro partes, e como se conectam
+
+```
+examples/persona/experience/acme-pagamentos.md        arquivo no disco
+        │
+        ▼
+ loader.py     acha os arquivos, separa o bloco YAML entre os "---",
+               roda yaml.safe_load  →  dicionário Python
+        │
+        ▼
+ models.py     Experience.model_validate(dicionário)
+               →  objeto Experience, ou ValidationError com os problemas
+        │
+        ▼
+ rules.py      regras que precisam de VÁRIOS arquivos: ids repetidos,
+               skill apontando para item que não existe
+        │
+        ▼
+ __main__.py   junta todos os erros e avisos e imprime
+```
+
+Tudo fica em `src/cv_engine/validation/`. O `models.py` **não sabe que arquivos existem**: recebe um
+dicionário e diz se ele é válido. Por isso os testes dele usam dicionários escritos à mão, sem criar
+arquivos.
+
+### 0.3. As classes do `models.py`
+
+Um model do Pydantic descreve um formato de dicionário. Regra prática: **bloco com campos dentro vira
+classe; valor simples com restrição vira tipo anotado** (`Annotated[str, Field(...)]`). Os models
+grandes são feitos de peças pequenas, e o Pydantic valida de dentro para fora:
+
+```yaml
+type: experience          ┐
+id: acme-pagamentos       │  o arquivo inteiro  →  Experience
+role:                     │
+  pt: Estagiária...       │  role               →  LocalizedText
+location:                 │
+  city: Recife            │  location           →  Location
+start: 2024-08            │  start              →  YearMonth
+bullets:                  │
+  - id: acme-conciliacao  │  cada item          →  Bullet
+    text: {pt: ...}       │  text do bullet     →  LocalizedText
+    status: reviewed      ┘
+```
+
+Peças pequenas (aparecem dentro dos arquivos):
+
+| Nome | Tipo de construção | O que é | Spec |
+|------|--------------------|---------|------|
+| `Slug` | tipo anotado | texto `acme-pagamentos` (ids, tags, evidências) | 3.2 |
+| `Line` | tipo anotado | texto de uma linha, sem espaço nas pontas | 3.4 |
+| `YearMonth` | tipo anotado ou classe | data `2024-08` ou `2024` | 3.5 |
+| `Link` | tipo anotado | URL como aparece impressa | 3.7 |
+| `LocalizedText` | classe | o par `{pt, en}` | 3.4 |
+| `Location` | classe | `{city, region, country}` | 4.2 |
+| `Bullet` | classe | um bullet do currículo | 4.1 |
+
+Um model por tipo de arquivo:
+
+| Classe | Arquivo | Spec |
+|--------|---------|------|
+| `Experience` | `experience/*.md` | 5.2 |
+| `Project` | `projects/*.md` | 5.3 |
+| `Education` | `education/*.md` | 5.4 |
+| `Course` | `courses/*.md` | 5.5 |
+| `Activity` | `activities/*.md` | 5.6 |
+| `Profile` (+ contatos e idioma falado) | `profile.md` | 5.1 |
+| `Skill` e `SkillsFile` | `skills.yaml` | 6 |
+
+### 0.4. Onde cada regra entra
+
+A pergunta que decide: **quanto a regra precisa enxergar?**
+
+| A regra olha... | Exemplo | Ferramenta |
+|-----------------|---------|------------|
+| um valor só | formato do slug | `Field(pattern=...)` no tipo anotado, ou `field_validator` |
+| um valor que o YAML entrega em tipos diferentes | `2025` vem como `int` | `field_validator(..., mode="before")` |
+| vários campos do mesmo bloco | `reviewed` exige `pt` e `en` | `model_validator(mode="after")` |
+| campos que não deveriam existir | `stauts: draft` | `model_config = ConfigDict(extra="forbid")` em **cada** classe |
+| vários arquivos | id repetido no banco | `rules.py` (seção 7), nunca no model |
+
+Para recusar um dado, o código faz `raise ValueError("mensagem em inglês")`; o Pydantic transforma
+em `ValidationError`. `assert` é só para testes.
+
 ## 1. Escopo
 
 Dentro da fase 1a:
@@ -578,16 +675,22 @@ Caminhos de campo usam a notação `a.b[0].c`. O Pydantic já entrega o caminho 
 
 ## 9. Ordem de implementação sugerida
 
-Cada etapa com testes antes de passar para a próxima:
+Cada etapa com testes antes de passar para a próxima. Arquivo de cada etapa entre parênteses.
 
-1. `Slug`, `YearMonth` e `LocalizedText` (tipos pequenos, muitos casos de borda).
-2. `Bullet` com as regras de 4.1 (os oito casos inválidos acima viram testes).
-3. `Location`, `Link`, `Experience` e `Project`.
-4. `Profile`, `Education`, `Course`, `Activity` e `Skill`.
+1. `Slug`, `Line`, `LocalizedText` e `YearMonth`: tipos pequenos, muitos casos de borda
+   (`models.py`, testes em `tests/test_models.py`).
+2. `Bullet` com as regras de 4.1; os oito casos inválidos viram testes (`models.py`). O limite de
+   200 caracteres fica no `Bullet`, não no `LocalizedText`, porque cada campo tem o seu limite.
+3. `Location`, `Link`, `Experience` e `Project` (`models.py`).
+4. `Profile`, `Education`, `Course`, `Activity` e `Skill` (`models.py`).
 5. Carregamento: ler o diretório, separar frontmatter, escolher o modelo pelo `type`, conferir
-   `id` = nome do arquivo e `type` = pasta.
-6. Regras entre arquivos (seção 7).
-7. Relatório de erros e avisos (seção 8) e o comando de linha de comando.
+   `id` = nome do arquivo e `type` = pasta (`loader.py`).
+6. Regras entre arquivos, seção 7 (`rules.py`).
+7. Relatório de erros e avisos, seção 8, e o comando de linha de comando (`__main__.py`).
+
+Em todas as etapas: nomes descritivos, type hints, docstring explicando a regra da spec que o código
+implementa, um caso por teste, e `uv run ruff check`, `uv run ruff format` e `uv run pytest` verdes
+antes do commit. Rode os comandos de dentro de `cv-engine/`.
 
 ## 10. Mudanças nesta spec
 

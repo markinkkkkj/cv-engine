@@ -564,13 +564,13 @@ dados de um arquivo que nem carregou).
   1d, no CI) transforma avisos em erros.
 
 O validador **junta todos os problemas** e mostra de uma vez; não para no primeiro. Cada mensagem
-diz arquivo, caminho do campo e o motivo:
+diz arquivo, caminho do campo e o motivo. **Mensagens em inglês**, como o código e os commits:
 
 ```
-ERRO   experience/acme-pagamentos.md  bullets[0].text.en  obrigatório em bullet reviewed
-ERRO   experience/acme-pagamentos.md  end                  2024-02 é anterior a start (2024-08)
-ERRO   skills.yaml                    skills[3].evidence[0]  item 'acme' não existe
-AVISO  projects/loja.md               links.demo           sem demo_online
+ERROR    experience/acme-pagamentos.md  bullets[0].text.en     required in a reviewed bullet
+ERROR    experience/acme-pagamentos.md  end                    2024-02 is before start (2024-08)
+ERROR    skills.yaml                    skills[3].evidence[0]  item 'acme' does not exist
+WARNING  projects/loja.md               links.demo             demo link without demo_online
 ```
 
 Caminhos de campo usam a notação `a.b[0].c`. O Pydantic já entrega o caminho em `error["loc"]`;

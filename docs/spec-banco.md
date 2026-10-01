@@ -20,7 +20,7 @@ $ uv run python -m cv_engine.validation examples/persona
 ERROR    experience/acme-pagamentos.md  bullets[0].text.en  required in a reviewed bullet
 ```
 
-### 0.2. As quatro partes, e como se conectam
+### 0.2. As partes, e como se conectam
 
 ```
 examples/persona/experience/acme-pagamentos.md        arquivo no disco
@@ -30,8 +30,9 @@ examples/persona/experience/acme-pagamentos.md        arquivo no disco
                roda yaml.safe_load  →  dicionário Python
         │
         ▼
- models.py     Experience.model_validate(dicionário)
-               →  objeto Experience, ou ValidationError com os problemas
+ models        Experience.model_validate(dicionário)
+ (3 arquivos)  →  objeto Experience, ou ValidationError com os problemas
+               (field_types.py, pieces.py e documents.py; ver 0.4)
         │
         ▼
  rules.py      regras que precisam de VÁRIOS arquivos: ids repetidos,
@@ -41,11 +42,11 @@ examples/persona/experience/acme-pagamentos.md        arquivo no disco
  __main__.py   junta todos os erros e avisos e imprime
 ```
 
-Tudo fica em `src/cv_engine/validation/`. O `models.py` **não sabe que arquivos existem**: recebe um
-dicionário e diz se ele é válido. Por isso os testes dele usam dicionários escritos à mão, sem criar
-arquivos.
+Tudo fica em `src/cv_engine/validation/`. Os models **não sabem que arquivos existem**: recebem um
+dicionário e dizem se ele é válido. Por isso os testes deles usam dicionários escritos à mão, sem
+criar arquivos.
 
-### 0.3. As classes do `models.py`
+### 0.3. As classes
 
 Um model do Pydantic descreve um formato de dicionário. Regra prática: **bloco com campos dentro vira
 classe; valor simples com restrição vira tipo anotado** (`Annotated[str, Field(...)]`). Os models
@@ -65,22 +66,27 @@ bullets:                  │
     status: reviewed      ┘
 ```
 
-Peças pequenas (aparecem dentro dos arquivos):
+Valores simples com restrição, em `field_types.py`:
 
 | Nome | Tipo de construção | O que é | Spec |
 |------|--------------------|---------|------|
 | `Slug` | tipo anotado | texto `acme-pagamentos` (ids, tags, evidências) | 3.2 |
 | `Line` | tipo anotado | texto de uma linha, sem espaço nas pontas | 3.4 |
-| `YearMonth` | tipo anotado ou classe | data `2024-08` ou `2024` | 3.5 |
+| `YearMonth` | tipo anotado | data `2024-08` ou `2024` | 3.5 |
 | `Link` | tipo anotado | URL como aparece impressa | 3.7 |
-| `LocalizedText` | classe | o par `{pt, en}` | 3.4 |
-| `Location` | classe | `{city, region, country}` | 4.2 |
-| `Bullet` | classe | um bullet do currículo | 4.1 |
 
-Um model por tipo de arquivo:
+Blocos que aparecem dentro dos arquivos, em `pieces.py`:
 
-| Classe | Arquivo | Spec |
+| Classe | O que é | Spec |
 |--------|---------|------|
+| `LocalizedText` | o par `{pt, en}` | 3.4 |
+| `Location` | `{city, region, country}` | 4.2 |
+| `Bullet` | um bullet do currículo | 4.1 |
+
+Um model por tipo de arquivo do banco, em `documents.py`:
+
+| Classe | Arquivo do banco | Spec |
+|--------|------------------|------|
 | `Experience` | `experience/*.md` | 5.2 |
 | `Project` | `projects/*.md` | 5.3 |
 | `Education` | `education/*.md` | 5.4 |
@@ -89,7 +95,40 @@ Um model por tipo de arquivo:
 | `Profile` (+ contatos e idioma falado) | `profile.md` | 5.1 |
 | `Skill` e `SkillsFile` | `skills.yaml` | 6 |
 
-### 0.4. Onde cada regra entra
+### 0.4. Organização em camadas
+
+Os models ficam em três arquivos, um por **camada**. Cada camada só usa as de baixo:
+
+```
+documents.py     Experience, Project, Education, Course,        camada 3: um model por
+                 Activity, Profile, Skill, SkillsFile           tipo de arquivo do banco
+      │ importa
+      ▼
+pieces.py        LocalizedText, Location, Bullet                 camada 2: blocos que aparecem
+      │ importa                                                  dentro dos arquivos
+      ▼
+field_types.py   Slug, Line, YearMonth, Link                     camada 1: valores simples;
+                                                                 não importa nada do projeto
+```
+
+Regras:
+
+1. **Importação só para baixo.** `pieces.py` importa de `field_types.py`; `documents.py` importa dos
+   dois. Nunca o contrário: um import para cima cria importação circular, e o Python falha ao
+   carregar o pacote.
+2. **Classe nova vai para a camada do seu papel**, não para um arquivo próprio. Pergunta que decide:
+   é um valor simples (camada 1), um bloco que aparece dentro de arquivos (camada 2) ou o arquivo
+   inteiro (camada 3)?
+3. **Testes espelham os arquivos:** `tests/test_field_types.py`, `tests/test_pieces.py` e
+   `tests/test_documents.py`. Quem procura o teste de uma classe abre o arquivo de mesmo nome.
+4. O nome é `field_types.py`, não `types.py`, porque `types` já é um módulo da biblioteca padrão
+   do Python.
+
+Por que camadas, e não um arquivo por classe: seriam 15 arquivos pequenos, no estilo do Java. Em
+Python, o comum é agrupar o que tem o mesmo papel. Três arquivos mostram a estrutura de relance,
+na mesma ordem em que o Pydantic valida: de dentro (camada 1) para fora (camada 3).
+
+### 0.5. Onde cada regra entra
 
 A pergunta que decide: **quanto a regra precisa enxergar?**
 
@@ -677,12 +716,12 @@ Caminhos de campo usam a notação `a.b[0].c`. O Pydantic já entrega o caminho 
 
 Cada etapa com testes antes de passar para a próxima. Arquivo de cada etapa entre parênteses.
 
-1. `Slug`, `Line`, `LocalizedText` e `YearMonth`: tipos pequenos, muitos casos de borda
-   (`models.py`, testes em `tests/test_models.py`).
-2. `Bullet` com as regras de 4.1; os oito casos inválidos viram testes (`models.py`). O limite de
+1. `Slug`, `Line` e `YearMonth` (`field_types.py`) e `LocalizedText` (`pieces.py`): tipos
+   pequenos, muitos casos de borda.
+2. `Bullet` com as regras de 4.1; os oito casos inválidos viram testes (`pieces.py`). O limite de
    200 caracteres fica no `Bullet`, não no `LocalizedText`, porque cada campo tem o seu limite.
-3. `Location`, `Link`, `Experience` e `Project` (`models.py`).
-4. `Profile`, `Education`, `Course`, `Activity` e `Skill` (`models.py`).
+3. `Link` (`field_types.py`), `Location` (`pieces.py`), `Experience` e `Project` (`documents.py`).
+4. `Profile`, `Education`, `Course`, `Activity` e `Skill` (`documents.py`).
 5. Carregamento: ler o diretório, separar frontmatter, escolher o modelo pelo `type`, conferir
    `id` = nome do arquivo e `type` = pasta (`loader.py`).
 6. Regras entre arquivos, seção 7 (`rules.py`).

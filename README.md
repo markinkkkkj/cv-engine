@@ -11,6 +11,8 @@ banco (MD+YAML) ──► tailored.yaml ──► render.json ──► Typst �
 Estado: fase 1a (formato do banco e validação).
 
 - Formato do banco: [docs/spec-banco.md](docs/spec-banco.md).
+- O que já foi feito e o que vem a seguir: [docs/progresso.md](docs/progresso.md).
+- Por que cada escolha foi feita: [docs/decisoes.md](docs/decisoes.md).
 - Banco de exemplo (pessoa fictícia): [examples/persona/](examples/persona/).
 - Contrato do `render.json`, entrada de todos os temas: [templates/contract.schema.json](templates/contract.schema.json).
   Exemplo: [tests/fixtures/contract/persona-backend-pt.json](tests/fixtures/contract/persona-backend-pt.json).

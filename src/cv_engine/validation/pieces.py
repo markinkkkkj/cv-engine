@@ -1,13 +1,10 @@
-"""Pydantic models for the experience database. Rules: docs/spec-banco.md."""
+"""Layer 2: blocks that appear inside database files. Spec 0.4."""
 
-from typing import Annotated, Self
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
-# Lowercase id like "acme-payments": letters, digits and single hyphens. Spec 3.2.
-Slug = Annotated[str, Field(pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$")]
-# One line of text, no leading/trailing spaces, no line breaks. Spec 3.4.
-Line = Annotated[str, Field(pattern=r"^\S(.*\S)?$")]
+from cv_engine.validation.field_types import Line, Slug
 
 
 class LocalizedText(BaseModel):
@@ -32,3 +29,9 @@ class Bullet(BaseModel):
 
     id: Slug
     text: LocalizedText
+    status: Literal["draft", "reviewed"]
+    tags: list[Slug] = []
+    evidence: list[Slug] = []
+    metric: Line | None = None
+    priority: Literal["low", "medium", "high"] = "medium"
+    note: Line | None = None

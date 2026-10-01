@@ -121,16 +121,30 @@ Regras:
    inteiro (camada 3)?
 3. **Testes espelham os arquivos:** `tests/test_field_types.py`, `tests/test_pieces.py` e
    `tests/test_documents.py`. Quem procura o teste de uma classe abre o arquivo de mesmo nome.
-4. **Nome dos testes:**
-   - `test_<model>` (ex.: `test_localized_text`, `test_bullet`) é o teste **completo válido**:
-     preenche **todos** os campos, obrigatórios e opcionais, com valores válidos, e espera que passe.
-     Um por model. Ele confere que o model aceita o caso cheio e que cada valor foi guardado.
-   - `test_<model>_<caso>` é para todos os outros, com o caso no nome: `test_bullet_minimal`
-     (só os obrigatórios), `test_bullet_reviewed_without_evidence_fails`,
-     `test_localized_text_unknown_language_fails`. Quem lê o nome sabe o que quebrou sem abrir o teste.
-   - **Constante com o nome do model** (`LOCALIZED_TEXT`, `BULLET`), no topo do arquivo de teste:
+4. **Testes de cada unidade** (cada tipo de `field_types.py` e cada classe):
+   - **Três testes base, obrigatórios em toda unidade:**
+
+     | Nome | Entrada | Esperado |
+     |------|---------|----------|
+     | `test_<unidade>` | o caso **completo**: todos os campos, obrigatórios e opcionais | passa, e cada valor foi guardado |
+     | `test_<unidade>_minimal` | só o **obrigatório** | passa, e os opcionais recebem o valor padrão |
+     | `test_<unidade>_empty` | entrada **vazia**: `{}` numa classe, `""` num tipo | falha, se a unidade exige algo |
+
+     Exemplos: `test_bullet`, `test_bullet_minimal`, `test_bullet_empty`; `test_slug`
+     (`"acme-pagamentos"`), `test_slug_minimal` (`"a"`), `test_slug_empty` (`""`). No
+     `LocalizedText`, o mínimo é um idioma só.
+   - **Um teste por regra**, além dos três base: `test_<unidade>_<caso>`, com o caso no nome
+     (`test_bullet_reviewed_without_evidence_fails`, `test_localized_text_unknown_language_fails`).
+     Quem lê o nome sabe o que quebrou sem abrir o teste. Para cada regra, testar também as
+     **bordas** (vazio, um caractere, o limite exato), onde o erro costuma se esconder.
+   - Regras de um tipo da camada 1 (ex.: `Line`) são testadas no arquivo da camada 1
+     (`tests/test_field_types.py`, com `TypeAdapter`). Na camada de cima, basta **um** teste
+     mostrando que a classe usa o tipo (ex.: `LocalizedText` recusa `" Oi"`).
+   - **Constante com o nome da unidade** (`LOCALIZED_TEXT`, `BULLET`), no topo do arquivo de teste:
      o dicionário **completo e válido**, com todos os campos preenchidos. É o dado do
-     `test_<model>`. Nunca contém valor inválido.
+     `test_<unidade>`. Nunca contém valor inválido. Nos opcionais com padrão, use um valor
+     **diferente** do padrão (`priority: high`, não `medium`); senão o teste não distingue "o valor
+     foi guardado" de "o padrão foi aplicado".
    - Teste de falha copia essa constante e muda **um** campo só:
      `Bullet.model_validate({**BULLET, "status": "done"})`. Assim o teste só pode falhar pelo campo
      trocado. O defeito fica dentro do teste, nunca numa constante.

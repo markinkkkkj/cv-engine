@@ -121,7 +121,14 @@ Regras:
    inteiro (camada 3)?
 3. **Testes espelham os arquivos:** `tests/test_field_types.py`, `tests/test_pieces.py` e
    `tests/test_documents.py`. Quem procura o teste de uma classe abre o arquivo de mesmo nome.
-4. O nome é `field_types.py`, não `types.py`, porque `types` já é um módulo da biblioteca padrão
+4. **Nome dos testes:**
+   - `test_<model>` (ex.: `test_localized_text`, `test_bullet`) é o teste **completo válido**:
+     preenche **todos** os campos, obrigatórios e opcionais, com valores válidos, e espera que passe.
+     Um por model. Ele confere que o model aceita o caso cheio e que cada valor foi guardado.
+   - `test_<model>_<caso>` é para todos os outros, com o caso no nome: `test_bullet_minimal`
+     (só os obrigatórios), `test_bullet_reviewed_without_evidence_fails`,
+     `test_localized_text_unknown_language_fails`. Quem lê o nome sabe o que quebrou sem abrir o teste.
+5. O nome é `field_types.py`, não `types.py`, porque `types` já é um módulo da biblioteca padrão
    do Python.
 
 Por que camadas, e não um arquivo por classe: seriam 15 arquivos pequenos, no estilo do Java. Em

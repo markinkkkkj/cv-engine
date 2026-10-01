@@ -128,6 +128,12 @@ Regras:
    - `test_<model>_<caso>` é para todos os outros, com o caso no nome: `test_bullet_minimal`
      (só os obrigatórios), `test_bullet_reviewed_without_evidence_fails`,
      `test_localized_text_unknown_language_fails`. Quem lê o nome sabe o que quebrou sem abrir o teste.
+   - **Constante com o nome do model** (`LOCALIZED_TEXT`, `BULLET`), no topo do arquivo de teste:
+     o dicionário **completo e válido**, com todos os campos preenchidos. É o dado do
+     `test_<model>`. Nunca contém valor inválido.
+   - Teste de falha copia essa constante e muda **um** campo só:
+     `Bullet.model_validate({**BULLET, "status": "done"})`. Assim o teste só pode falhar pelo campo
+     trocado. O defeito fica dentro do teste, nunca numa constante.
 5. O nome é `field_types.py`, não `types.py`, porque `types` já é um módulo da biblioteca padrão
    do Python.
 

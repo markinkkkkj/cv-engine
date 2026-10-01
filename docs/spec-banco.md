@@ -122,15 +122,18 @@ Regras:
 3. **Testes espelham os arquivos:** `tests/test_field_types.py`, `tests/test_pieces.py` e
    `tests/test_documents.py`. Quem procura o teste de uma classe abre o arquivo de mesmo nome.
 4. **Testes de cada unidade** (cada tipo de `field_types.py` e cada classe):
-   - **Três testes base, obrigatórios em toda unidade:**
+   - **Testes base, obrigatórios em toda unidade** (o quarto, só em classes):
 
      | Nome | Entrada | Esperado |
      |------|---------|----------|
      | `test_<unidade>` | o caso **completo**: todos os campos, obrigatórios e opcionais | passa, e cada valor foi guardado |
      | `test_<unidade>_minimal` | só o **obrigatório** | passa, e os opcionais recebem o valor padrão |
      | `test_<unidade>_empty` | entrada **vazia**: `{}` numa classe, `""` num tipo | falha, se a unidade exige algo |
+     | `test_<unidade>_extra_fields` | o caso completo + um campo que não existe (só em classes) | falha, porque toda classe usa `extra="forbid"` (3.1) |
 
-     Exemplos: `test_bullet`, `test_bullet_minimal`, `test_bullet_empty`; `test_slug`
+     Os nomes base dizem a **entrada**, não o resultado: o corpo do teste é que espera passar ou
+     falhar. Exemplos: `test_bullet`, `test_bullet_minimal`, `test_bullet_empty`,
+     `test_bullet_extra_fields` (`{**BULLET, "stauts": "draft"}`); `test_slug`
      (`"acme-pagamentos"`), `test_slug_minimal` (`"a"`), `test_slug_empty` (`""`). No
      `LocalizedText`, o mínimo é um idioma só.
    - **Um teste por regra**, além dos três base: `test_<unidade>_<caso>`, com o caso no nome

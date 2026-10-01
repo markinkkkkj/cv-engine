@@ -136,7 +136,7 @@ Regras:
      `test_bullet_extra_fields` (`{**BULLET, "stauts": "draft"}`); `test_slug`
      (`"acme-pagamentos"`), `test_slug_minimal` (`"a"`), `test_slug_empty` (`""`). No
      `LocalizedText`, o mínimo é um idioma só.
-   - **Um teste por regra**, além dos três base: `test_<unidade>_<caso>`, com o caso no nome
+   - **Um teste por regra**, além dos testes base: `test_<unidade>_<caso>`, com o caso no nome
      (`test_bullet_reviewed_without_evidence_fails`, `test_localized_text_unknown_language_fails`).
      Quem lê o nome sabe o que quebrou sem abrir o teste. Para cada regra, testar também as
      **bordas** (vazio, um caractere, o limite exato), onde o erro costuma se esconder.

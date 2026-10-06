@@ -52,3 +52,12 @@ antiga, em vez de ser apagada.
 
 - Idioma da spec e do README (hoje em português).
 - Campo para a média da graduação (CR/GPA): hoje não existe na spec; em aberto se vale incluir como opcional.
+- Seleção automática de bullets (2026-10-06), para a automação futura (fase 4). O motor só lê o
+  `tailored.yaml`, então quem faz a seleção é uma peça trocável e a escolha pode esperar. Até lá,
+  a fase 2 (`/cv-tailor`) usa um LLM, porque também escreve o `gaps.md` e traduções, o que pede
+  geração de texto. Opções a comparar, em ordem: (1) casamento determinístico entre os termos da
+  vaga e os apelidos do `skills.yaml` e as tags; (2) embeddings locais (similaridade entre a vaga
+  e cada bullet); (3) modelos de decisão estruturada, que devolvem uma escolha ou nota em vez de
+  texto (ex.: Jev, da TypeSafe AI). Critério: os `tailored.yaml` aprovados à mão viram gabarito
+  para medir quanto cada opção acerta. Custo e velocidade pesam pouco: o gargalo é a aprovação
+  humana, que continua obrigatória.
